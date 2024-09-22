@@ -1,20 +1,28 @@
-'use client'
-import React, { useState, useEffect, useCallback } from 'react'
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Trash2, Check, Plus, Minus } from 'lucide-react'
-import { kebabShopMenu } from './menu-data'
-import { v4 as uuidv4 } from 'uuid' // Make sure to install and import uuid
+'use client';
+import React, { useState, useEffect, useCallback } from 'react';
+import CustomizationModal from './CustomizationModal'; 
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Trash2, Check, Plus, Minus } from 'lucide-react';
+import { kebabShopMenu } from './menu-data';
+import { v4 as uuidv4 } from 'uuid'; 
 
 export default function KebabStoreOwner() {
   const menu = kebabShopMenu;
-  const [cart, setCart] = useState([])
-  const [orders, setOrders] = useState([])
-  const [activeTab, setActiveTab] = useState('Kebab')
+  const [cart, setCart] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [activeTab, setActiveTab] = useState('Kebab');
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -23,40 +31,67 @@ export default function KebabStoreOwner() {
           ...order,
           remainingTime: Math.max(0, order.remainingTime - 1),
         }))
-      )
-    }, 60000) // Update every minute
+      );
+    }, 60000); // Update every minute
 
-    return () => clearInterval(timer)
-  }, [])
+    return () => clearInterval(timer);
+  }, []);
 
-  const addToCart = useCallback((item) => {
-    setCart(prevCart => {
-      const existingItem = prevCart.find(cartItem => cartItem.id === item.id)
+  const addToCart = useCallback((item, customizations = {}) => {
+    setCart((prevCart) => {
+      // Create a unique identifier for the item based on its id and customizations
+      const cartItemId = `${item.id}-${JSON.stringify(customizations)}`;
+      const existingItem = prevCart.find((cartItem) => cartItem.cartItemId === cartItemId);
       if (existingItem) {
-        return prevCart.map(cartItem => 
-          cartItem.id === item.id 
-            ? { ...cartItem, quantity: cartItem.quantity + 1 } 
+        return prevCart.map((cartItem) =>
+          cartItem.cartItemId === cartItemId
+            ? { ...cartItem, quantity: cartItem.quantity + 1 }
             : cartItem
-        )
+        );
       } else {
-        return [...prevCart, { ...item, quantity: 1, cartId: uuidv4() }]
+        // Calculate extra cost from customizations
+        let extraCost = 0;
+        if (item.customizations) {
+          item.customizations.forEach((category) => {
+            if (category.extraCost) {
+              const selectedOptions = customizations[category.name];
+              if (selectedOptions) {
+                if (Array.isArray(selectedOptions)) {
+                  extraCost += selectedOptions.length * category.extraCost;
+                } else {
+                  extraCost += category.extraCost;
+                }
+              }
+            }
+          });
+        }
+        return [
+          ...prevCart,
+          {
+            ...item,
+            price: item.price + extraCost,
+            quantity: 1,
+            cartItemId: cartItemId,
+            customizations: customizations,
+          },
+        ];
       }
-    })
-  }, [])
-
-  const removeFromCart = useCallback((cartId) => {
-    setCart(prevCart => {
-      return prevCart.map(item => 
-        item.cartId === cartId 
-          ? { ...item, quantity: item.quantity - 1 }
-          : item
-      ).filter(item => item.quantity > 0);
     });
-  }, [])
+  }, []);
 
-  const removeItemCompletely = useCallback((cartId) => {
-    setCart(prevCart => prevCart.filter(item => item.cartId !== cartId));
-  }, [])
+  const removeFromCart = useCallback((cartItemId) => {
+    setCart((prevCart) => {
+      return prevCart
+        .map((item) =>
+          item.cartItemId === cartItemId ? { ...item, quantity: item.quantity - 1 } : item
+        )
+        .filter((item) => item.quantity > 0);
+    });
+  }, []);
+
+  const removeItemCompletely = useCallback((cartItemId) => {
+    setCart((prevCart) => prevCart.filter((item) => item.cartItemId !== cartItemId));
+  }, []);
 
   const placeOrder = (customerInfo) => {
     const newOrder = {
@@ -66,18 +101,18 @@ export default function KebabStoreOwner() {
       phone: customerInfo.phone || 'No phone',
       items: [...cart],
       remainingTime: customerInfo.pickupTime,
-    }
-    setOrders([...orders, newOrder])
-    setCart([])
-  }
+    };
+    setOrders([...orders, newOrder]);
+    setCart([]);
+  };
 
   const deleteOrder = (orderId) => {
-    setOrders(orders.filter((order) => order.id !== orderId))
-  }
+    setOrders(orders.filter((order) => order.id !== orderId));
+  };
 
   const markAsPickedUp = (orderId) => {
-    setOrders(orders.filter((order) => order.id !== orderId))
-  }
+    setOrders(orders.filter((order) => order.id !== orderId));
+  };
 
   // Header component
   function Header() {
@@ -85,28 +120,55 @@ export default function KebabStoreOwner() {
       <header className="bg-primary text-primary-foreground p-4 text-center">
         <h1 className="text-2xl font-bold">Store Kebab</h1>
       </header>
-    )
+    );
   }
 
   // MenuItem component
-  const MenuItem = ({ item, addToCart }) => (
-    <Card className="mb-4">
-      <CardHeader>
-        <CardTitle>{item.name}</CardTitle>
-        <CardDescription>€{item.price.toFixed(2)}</CardDescription>
-      </CardHeader>
-      <CardFooter>
-        <Button onClick={() => addToCart(item)}>Add to Order</Button>
-      </CardFooter>
-    </Card>
-  )
+  const MenuItem = ({ item, addToCart }) => {
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const handleAddToOrderClick = () => {
+      if (item.customizations && item.customizations.length > 0) {
+        setIsModalOpen(true);
+      } else {
+        // If no customizations, add directly to cart
+        addToCart(item);
+      }
+    };
+
+    const handleModalClose = () => {
+      setIsModalOpen(false);
+    };
+
+    return (
+      <Card className="mb-4">
+        <CardHeader>
+          <CardTitle>{item.name}</CardTitle>
+          <CardDescription>€{item.price.toFixed(2)}</CardDescription>
+        </CardHeader>
+        <CardFooter>
+          <Button onClick={handleAddToOrderClick}>Add to Order</Button>
+        </CardFooter>
+        {isModalOpen && (
+          <CustomizationModal
+            item={item}
+            isOpen={isModalOpen}
+            onClose={handleModalClose}
+            addToCart={addToCart}
+          />
+        )}
+      </Card>
+    );
+  };
 
   // Menu component
   const Menu = ({ addToCart }) => (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
       <TabsList className="grid w-full grid-cols-5">
         {Object.keys(menu).map((category) => (
-          <TabsTrigger key={category} value={category}>{category}</TabsTrigger>
+          <TabsTrigger key={category} value={category}>
+            {category}
+          </TabsTrigger>
         ))}
       </TabsList>
       {Object.entries(menu).map(([category, items]) => (
@@ -119,7 +181,7 @@ export default function KebabStoreOwner() {
         </TabsContent>
       ))}
     </Tabs>
-  )
+  );
 
   // Updated Cart component
   const Cart = ({ cart, removeFromCart, addToCart, removeItemCompletely }) => (
@@ -129,29 +191,39 @@ export default function KebabStoreOwner() {
       </CardHeader>
       <CardContent>
         {cart.map((item) => (
-          <div key={item.cartId} className="flex justify-between items-center mb-2">
-            <span>{item.name} - €{item.price.toFixed(2)}</span>
+          <div key={item.cartItemId} className="flex justify-between items-center mb-2">
+            <div>
+              <span>
+                {item.name} - €{item.price.toFixed(2)}
+              </span>
+              {item.customizations && Object.keys(item.customizations).length > 0 && (
+                <div className="ml-4 text-sm text-muted">
+                  {Object.entries(item.customizations).map(([category, options]) => (
+                    <div key={category}>
+                      <span>{category}: </span>
+                      {Array.isArray(options) ? options.join(', ') : options}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
             <div className="flex items-center">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => removeFromCart(item.cartId)}
-              >
+              <Button variant="outline" size="sm" onClick={() => removeFromCart(item.cartItemId)}>
                 <Minus className="h-4 w-4" />
               </Button>
               <span className="mx-2">{item.quantity}</span>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => addToCart(item)}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => addToCart(item, item.customizations)}
               >
                 <Plus className="h-4 w-4" />
               </Button>
-              <Button 
-                variant="destructive" 
-                size="sm" 
+              <Button
+                variant="destructive"
+                size="sm"
                 className="ml-2"
-                onClick={() => removeItemCompletely(item.cartId)}
+                onClick={() => removeItemCompletely(item.cartItemId)}
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
@@ -160,21 +232,24 @@ export default function KebabStoreOwner() {
         ))}
       </CardContent>
       <CardFooter>
-        <strong>Total: €{cart.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2)}</strong>
+        <strong>
+          Total: €
+          {cart.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2)}
+        </strong>
       </CardFooter>
     </Card>
-  )
+  );
 
   // OrderForm component
   const OrderForm = ({ cart, placeOrder }) => {
-    const [name, setName] = useState('')
-    const [phone, setPhone] = useState('')
-    const [pickupTime, setPickupTime] = useState('15')
+    const [name, setName] = useState('');
+    const [phone, setPhone] = useState('');
+    const [pickupTime, setPickupTime] = useState('15');
 
     const handleSubmit = (e) => {
-      e.preventDefault()
-      placeOrder({ name, phone, pickupTime: parseInt(pickupTime) })
-    }
+      e.preventDefault();
+      placeOrder({ name, phone, pickupTime: parseInt(pickupTime) });
+    };
 
     return (
       <Card>
@@ -185,26 +260,30 @@ export default function KebabStoreOwner() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <Label htmlFor="name">Name (optional)</Label>
-              <Input 
-                id="name" 
-                value={name} 
-                onChange={(e) => setName(e.target.value)} 
+              <Input
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 placeholder="Enter your name (optional)"
               />
             </div>
             <div>
               <Label htmlFor="phone">Phone (optional)</Label>
-              <Input 
-                id="phone" 
-                type="tel" 
-                value={phone} 
-                onChange={(e) => setPhone(e.target.value)} 
+              <Input
+                id="phone"
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
                 placeholder="Enter your phone number (optional)"
               />
             </div>
             <div>
               <Label>Pickup Time</Label>
-              <RadioGroup value={pickupTime} onValueChange={setPickupTime} className="flex space-x-4">
+              <RadioGroup
+                value={pickupTime}
+                onValueChange={setPickupTime}
+                className="flex space-x-4"
+              >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="15" id="15min" />
                   <Label htmlFor="15min">15 min</Label>
@@ -219,12 +298,14 @@ export default function KebabStoreOwner() {
                 </div>
               </RadioGroup>
             </div>
-            <Button type="submit" disabled={cart.length === 0}>Place Order</Button>
+            <Button type="submit" disabled={cart.length === 0}>
+              Place Order
+            </Button>
           </form>
         </CardContent>
       </Card>
-    )
-  }
+    );
+  };
 
   // Updated OrderList component
   const OrderList = ({ orders, deleteOrder, markAsPickedUp }) => (
@@ -236,17 +317,32 @@ export default function KebabStoreOwner() {
         {orders.map((order) => (
           <Card key={order.id} className="mb-4">
             <CardHeader>
-              <CardTitle>{order.name} - {order.phone}</CardTitle>
-              <CardDescription>
-                Pickup in: {order.remainingTime} minutes
-              </CardDescription>
+              <CardTitle>
+                {order.name} - {order.phone}
+              </CardTitle>
+              <CardDescription>Pickup in: {order.remainingTime} minutes</CardDescription>
             </CardHeader>
             <CardContent>
               {order.items.map((item) => (
-                <div key={item.cartId}>{item.name} (x{item.quantity}) - €{(item.price * item.quantity).toFixed(2)}</div>
+                <div key={item.cartItemId}>
+                  {item.name} (x{item.quantity}) - €{(item.price * item.quantity).toFixed(2)}
+                  {item.customizations && Object.keys(item.customizations).length > 0 && (
+                    <div className="ml-4 text-sm text-muted">
+                      {Object.entries(item.customizations).map(([category, options]) => (
+                        <div key={category}>
+                          <span>{category}: </span>
+                          {Array.isArray(options) ? options.join(', ') : options}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               ))}
               <div className="font-bold mt-2">
-                Total: €{order.items.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2)}
+                Total: €
+                {order.items
+                  .reduce((sum, item) => sum + item.price * item.quantity, 0)
+                  .toFixed(2)}
               </div>
             </CardContent>
             <CardFooter className="flex justify-between">
@@ -261,7 +357,7 @@ export default function KebabStoreOwner() {
         ))}
       </CardContent>
     </Card>
-  )
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -271,9 +367,9 @@ export default function KebabStoreOwner() {
           <div>
             <Menu addToCart={addToCart} />
             <div className="mt-8">
-              <Cart 
-                cart={cart} 
-                removeFromCart={removeFromCart} 
+              <Cart
+                cart={cart}
+                removeFromCart={removeFromCart}
                 addToCart={addToCart}
                 removeItemCompletely={removeItemCompletely}
               />
@@ -292,5 +388,5 @@ export default function KebabStoreOwner() {
         </div>
       </main>
     </div>
-  )
+  );
 }
