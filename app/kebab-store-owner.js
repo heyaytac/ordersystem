@@ -36,7 +36,7 @@ const MenuItem = ({ item, addToCart }) => (
   </Card>
 )
 
-// Menu component
+// Menu component currently it jumps to "kebab" after adding an item to the cart need to fix it.
 const Menu = ({ addToCart }) => (
   <Tabs defaultValue="Kebab" className="w-full">
     <TabsList className="grid w-full grid-cols-5">
@@ -56,7 +56,7 @@ const Menu = ({ addToCart }) => (
   </Tabs>
 )
 
-// Cart component
+// Cart component deleting multiple items at once with the same id. Not fixed yet.
 const Cart = ({ cart, removeFromCart }) => (
   <Card>
     <CardHeader>
@@ -95,11 +95,11 @@ const OrderForm = ({ cart, placeOrder }) => {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="name">Name</Label>
+            <Label htmlFor="name">Name (optional)</Label>
             <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
           </div>
           <div>
-            <Label htmlFor="phone">Phone</Label>
+            <Label htmlFor="phone">Phone (optional)</Label>
             <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />
           </div>
           <div>
