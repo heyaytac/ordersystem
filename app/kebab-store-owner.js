@@ -197,7 +197,7 @@ export default function KebabStoreOwner() {
                 {item.name} - €{item.price.toFixed(2)}
               </span>
               {item.customizations && Object.keys(item.customizations).length > 0 && (
-                <div className="ml-4 text-sm text-muted">
+                <div className="ml-4 text-sm text-muted-foreground">
                   {Object.entries(item.customizations).map(([category, options]) => (
                     <div key={category}>
                       <span>{category}: </span>
@@ -327,7 +327,7 @@ export default function KebabStoreOwner() {
                 <div key={item.cartItemId}>
                   {item.name} (x{item.quantity}) - €{(item.price * item.quantity).toFixed(2)}
                   {item.customizations && Object.keys(item.customizations).length > 0 && (
-                    <div className="ml-4 text-sm text-muted">
+                    <div className="ml-4 text-sm text-muted-foreground">
                       {Object.entries(item.customizations).map(([category, options]) => (
                         <div key={category}>
                           <span>{category}: </span>

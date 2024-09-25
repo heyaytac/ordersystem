@@ -1,5 +1,3 @@
-// CustomizationModal.js
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -41,36 +39,36 @@ const CustomizationModal = ({ item, isOpen, onClose, addToCart }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent>
+      <DialogContent className="bg-gray-800 text-white border-gray-700">
         <DialogHeader>
-          <DialogTitle>Customize your {item.name}</DialogTitle>
+          <DialogTitle className="text-xl font-bold">Customize your {item.name}</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4">
+        <div className="space-y-6">
           {item.customizations &&
             item.customizations.map((customizationCategory) => (
-              <div key={customizationCategory.name}>
-                <Label>{customizationCategory.name}</Label>
+              <div key={customizationCategory.name} className="bg-gray-700 p-4 rounded-md">
+                <Label className="text-lg font-semibold mb-3 block">{customizationCategory.name}</Label>
                 {customizationCategory.type === 'single' ? (
                   <RadioGroup
                     value={customizations[customizationCategory.name] || ''}
                     onValueChange={(value) => handleSingleOptionChange(customizationCategory.name, value)}
                   >
                     {customizationCategory.options.map((option) => (
-                      <div key={option} className="flex items-center space-x-2">
+                      <div key={option} className="flex items-center space-x-2 my-2">
                         <RadioGroupItem value={option} id={`${customizationCategory.name}-${option}`} />
-                        <Label htmlFor={`${customizationCategory.name}-${option}`}>{option}</Label>
+                        <Label htmlFor={`${customizationCategory.name}-${option}`} className="text-white">{option}</Label>
                       </div>
                     ))}
                   </RadioGroup>
                 ) : (
                   customizationCategory.options.map((option) => (
-                    <div key={option} className="flex items-center space-x-2">
+                    <div key={option} className="flex items-center space-x-2 my-2">
                       <Checkbox
                         id={`${customizationCategory.name}-${option}`}
                         checked={(customizations[customizationCategory.name] || []).includes(option)}
                         onCheckedChange={() => handleMultipleOptionChange(customizationCategory.name, option)}
                       />
-                      <Label htmlFor={`${customizationCategory.name}-${option}`}>{option}</Label>
+                      <Label htmlFor={`${customizationCategory.name}-${option}`} className="text-white">{option}</Label>
                     </div>
                   ))
                 )}
@@ -78,7 +76,7 @@ const CustomizationModal = ({ item, isOpen, onClose, addToCart }) => {
             ))}
         </div>
         <DialogFooter>
-          <Button onClick={handleAddToCart}>Add to Cart</Button>
+          <Button onClick={handleAddToCart} className="bg-blue-600 hover:bg-blue-700 text-white">Add to Cart</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
