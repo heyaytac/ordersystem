@@ -16,14 +16,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Trash2, Check, Plus, Minus } from 'lucide-react';
 import { kebabShopMenu } from './menu-data';
-import { v4 as uuidv4 } from 'uuid'; 
+import { v4 as uuidv4 } from 'uuid';
+import { SpeedInsights } from '@vercel/speed-insights/next';
+
 
 export default function KebabStoreOwner() {
   const menu = kebabShopMenu;
   const [cart, setCart] = useState([]);
   const [orders, setOrders] = useState([]);
   const [activeTab, setActiveTab] = useState('Kebab');
-
+  <SpeedInsights />
   useEffect(() => {
     const timer = setInterval(() => {
       setOrders((prevOrders) =>
