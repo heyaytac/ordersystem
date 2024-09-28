@@ -25,7 +25,6 @@ export default function KebabStoreOwner() {
   const [cart, setCart] = useState([]);
   const [orders, setOrders] = useState([]);
   const [activeTab, setActiveTab] = useState('Kebab');
-  <SpeedInsights />
   useEffect(() => {
     const timer = setInterval(() => {
       setOrders((prevOrders) =>
@@ -360,7 +359,7 @@ export default function KebabStoreOwner() {
       </CardContent>
     </Card>
   );
-
+  <SpeedInsights />
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -385,6 +384,7 @@ export default function KebabStoreOwner() {
               orders={orders}
               deleteOrder={deleteOrder}
               markAsPickedUp={markAsPickedUp}
+              
             />
           </div>
         </div>
