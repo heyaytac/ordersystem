@@ -17,8 +17,6 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Trash2, Check, Plus, Minus } from 'lucide-react';
 import { kebabShopMenu } from './menu-data';
 import { v4 as uuidv4 } from 'uuid';
-import { SpeedInsights } from '@vercel/speed-insights/next';
-
 
 export default function KebabStoreOwner() {
   const menu = kebabShopMenu;
@@ -359,7 +357,6 @@ export default function KebabStoreOwner() {
       </CardContent>
     </Card>
   );
-  <SpeedInsights />
   return (
     <div className="min-h-screen bg-background">
       <Header />
